@@ -1,0 +1,110 @@
+#!/bin/bash
+
+rm -rf /root/backuplink
+
+# FUNGSI ANIMASI
+function loading_animation() {
+    local pid=$1
+    local delay=0.1
+    local spinstr="|/-\\"
+    while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+        local temp=${spinstr#?}
+        printf " [%c]  " "$spinstr"
+        spinstr=$temp${spinstr%"$temp"}
+        sleep $delay
+        printf "\b\b\b\b\b\b"
+    done
+    printf "    \b\b\b\b"
+}
+
+# KONFIGURASI WARNA
+green="\e[32m"
+NC="\e[0m"
+
+# KONFIGURASI BOT TELEGRAM
+TELEGRAM_TOKEN="$(cat /etc/lunatic/bot/notif/key)"
+TELEGRAM_CHAT_ID="$(cat /etc/lunatic/bot/notif/id)"
+
+# KONFIGURASI INFO VPS
+IP=$(curl -sS ipv4.icanhazip.com)
+DOMAIN="$(cat /etc/xray/domain)"
+DATE=$(date +"%Y-%m-%d")
+
+# FUNGSI MENGIRIM PESAN BOT 
+send_telegram_message() {
+    local message=$1
+    curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_TOKEN/sendMessage" \
+        -d chat_id="$TELEGRAM_CHAT_ID" \
+        -d parse_mode="Markdown" \
+        -d text="$message" >/dev/null
+}
+
+# MEMBUAT DIREKTORI EMAIL
+rm -rf /root/email 
+mkdir -p /root/email 
+email=$(cat /root/email)
+
+# KONFIGURASI EMAIL
+if [[ "$email" = "" ]]; then
+echo "Masukkan Email Untuk Menerima Backup"
+read -rp "Email : " -e email
+cat <<EOF>> /root/email
+$email
+EOF
+fi
+clear
+
+# PROSES BACKUP 
+BACKUP_ROOT="/root/backup"
+BACKUP_NAME="backup$(date +%H:%M:%S).zip"
+
+echo -e "[ ${green}INFO${NC} ] • Memulai proses backup..."
+rm -rf $BACKUP_ROOT
+mkdir $BACKUP_ROOT
+
+# MENCADANGKAN BEBERAPA FILE BACKUP YANG DIBUTUHKAN
+cp /etc/passwd "$BACKUP_ROOT"
+cp /etc/group "$BACKUP_ROOT"
+cp /etc/shadow "$BACKUP_ROOT"
+cp /etc/gshadow "$BACKUP_ROOT"
+cp -r /etc/lunatic "$BACKUP_ROOT/lunatic"
+cp -r /var/lib/LT "$BACKUP_ROOT/LT"
+cp -r /etc/xray "$BACKUP_ROOT/xray"
+cp -r /var/www/html "$BACKUP_ROOT/html"
+cp -r /etc/bot "$BACKUP_ROOT/bot" &>/dev/nullcp -r /var "$BACKUP_ROOT/html" &>/dev/nullecho -e "[ ${green}INFO${NC} ] • Semua file dan folder berhasil dicadangkan di $BACKUP_ROOT."
+
+# MEMBUAT FOLDER ZIP 
+echo "Mengarsipkan folder backup"
+zip -r $BACKUP_NAME backup
+rclone copy /root/$BACKUP_NAME dr:backup/
+url=$(rclone link dr:backup/$BACKUP_NAME)
+id=(`echo $url | grep '^https' | cut -d'=' -f2`)
+link="https://drive.google.com/u/4/uc?id=${id}&export=download"
+echo -e "\e[97;1m     ==============[ BACKUP DATA ]=============\e[0m"
+echo -e ""
+echo -e "[${green}INFO${NC}] • \e[96mDomain Host:\e[0m $DOMAIN"
+echo -e "[${green}INFO${NC}] • \e[96mDate Backup:\e[0m $DATE"
+echo -e "[${green}INFO${NC}] • \e[96mLink Backup:\e[0m "
+echo -e "$link"
+echo -e ""
+echo -e "\e[97;1m     ============[   WUZZSTORE   ]===========\e[0m"
+echo -e ""
+
+# Kirim notifikasi ke Telegram
+send_telegram_message "
+*======================*
+   * ✅ Backup berhasil ✅ * 
+*======================*
+* DOMAIN: $DOMAIN *
+* IP    : $IP *
+* TANGGAL :  $DATE *
+*======================*
+* LINK BACKUP:*
+$link"
+
+mkdir -p /root/backuplink
+cat <<EOF>> /root/backuplink
+$email
+EOF
+rm -rf /root/backup
+rm -rf /root/$BACKUP_NAME
