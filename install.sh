@@ -372,7 +372,7 @@ function UNTUK_UBUNTU(){
 lane_atas
 echo -e "${c}│      ${g}PROCESS INSTALLED MODUL PACKAGE${NC}     ${c}│${NC}"
 lane_bawah
-animation_loading 'TOOLS_PKG'
+TOOLS_PKG
 
 lane_atas
 echo -e "${c}│      ${g}PROCESS INSTALLED SSH & OPENVPN${NC}     ${c}│${NC}"
