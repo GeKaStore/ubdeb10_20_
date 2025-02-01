@@ -239,7 +239,7 @@ clear
 start=$(date +%s)
 ln -fs /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
 apt install git curl -y
-apt install python -y
+apt install python3 -y
 }
 
 INSTALL_SSH() {
