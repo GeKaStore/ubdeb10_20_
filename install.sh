@@ -231,15 +231,15 @@ animation_loading() {
 
 TOOLS_PKG() {
 cd
-wget https://raw.githubusercontent.com/GeKaStore/ubdeb10_20_/main/PACKAGES/tools.sh && chmod +x tools.sh && ./tools.sh &> /dev/null
+wget https://raw.githubusercontent.com/GeKaStore/ubdeb10_20_/main/PACKAGES/tools.sh && chmod +x tools.sh && ./tools.sh
 
 wget -q -O /etc/port.txt "https://raw.githubusercontent.com/GeKaStore/ubdeb10_20_/main/PACKAGES/port.txt"
 
 clear
 start=$(date +%s)
 ln -fs /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
-apt install git curl -y >/dev/null 2>&1
-apt install python -y >/dev/null 2>&1
+apt install git curl -y
+apt install python -y
 }
 
 INSTALL_SSH() {
