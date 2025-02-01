@@ -231,7 +231,7 @@ animation_loading() {
 
 TOOLS_PKG() {
 cd
-wget https://raw.githubusercontent.com/GeKaStore/ubdeb10_20_/main/PACKAGES/tools.sh && chmod +x tools.sh && ./tools.sh
+wget https://raw.githubusercontent.com/GeKaStore/ubdeb10_20_/main/PACKAGES/tools.sh && chmod +x tools.sh && ./tools.sh &> /dev/null
 
 wget -q -O /etc/port.txt "https://raw.githubusercontent.com/GeKaStore/ubdeb10_20_/main/PACKAGES/port.txt"
 
